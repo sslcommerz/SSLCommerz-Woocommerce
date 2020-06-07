@@ -77,12 +77,6 @@
 	# PARSE THE JSON RESPONSE
 	$sslcz = json_decode($sslcommerzResponse, true );
 
-	// echo "<pre>";
-    
-	// var_dump($sslcz); exit;
-
-	// $sessionkey = $sslcz['sessionkey'];
-
 	if(isset($sslcz['GatewayPageURL']) && $sslcz['GatewayPageURL']!="") {
 		// this is important to show the popup, return or echo to sent json response back
 		if($api_type == "no")

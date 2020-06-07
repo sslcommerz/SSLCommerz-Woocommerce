@@ -1,7 +1,8 @@
 <?php
 	if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-	if(get_option('woocommerce_sslcommerz_settings')!='') {
+	if(get_option('woocommerce_sslcommerz_settings')!='') 
+	{
 		$data=get_option('woocommerce_sslcommerz_settings');
 		if ($data['store_id'] != '' || $data['store_password'] != '') {
 			$store_id = $data['store_id'];
@@ -15,7 +16,9 @@
 		} else {
 			$url = "https://securepay.sslcommerz.com/validator/api/validationserverAPI.php";
 		}
-	} else {
+	} 
+	else 
+	{
 		die("SSLCOMMERZ payment gateway is not enabled!");
 	}
 
@@ -27,7 +30,7 @@
 
 		// echo $orderid = substr($tran_id, 0, strpos($tran_id, '_'));
 
-        	$order = new WC_Order($tran_id);
+        $order = new WC_Order($tran_id);
 
 		$requested_url = ($url."?val_id=".$val_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json");
 		$handle = curl_init();
