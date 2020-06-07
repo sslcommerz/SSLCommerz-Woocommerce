@@ -26,10 +26,7 @@
 
 3. Click on SSLCommerz to edit the settings. If you do not see SSLCommerz in the list at the top of the screen make sure you have activated the plugin in the WordPress Plugin Manager.
 4. Enable the Payment Method, give a proper title and description to show on the checkout page,  fill up stroe id and store passowrd fields carefully, select success and fail/cancel page.
-5. Find the IPN URL. It will look like ```[your site]/index.php?sslcommerzipn```. Copy this URL, it will be needed in the next step.
-6. Login to your SSLCommerz merchant panel. Navigate to ```My Stores > IPN Settings``` from menu. Find ```IPN at HTTP Listner``` section at the bottom of the page.
-7. Paste the URL obtained from step 5. Check the box labeled ```Enable HTTP Listner```. Click ```Save```.
-8. Setup is complete. Check if everything is working properly.
+5. Setup is complete. Check if everything is working properly.
 
 
 ## FAQ
@@ -39,12 +36,12 @@
 
 ### What is SSLCommerz?
 > SSLCOMMERZ is the first payment gateway in Bangladesh opening doors for merchants to receive payments on the internet via their online stores.
+
 ### What is a Payment Gateway?
 > Payment Gateway is a service that allows merchant to accept secure credit card transactions online. It essentially connects a merchant website to a transaction processor like bank to take payment from a customer for an order.
 
 
 ## Contributors
-> C.M. Sayedur Rahman,
-> JM Redwan,
 > Prabal Mallick,
-> Rakibul Islam
+> Md. Rakibul Islam,
+> C.M. Sayedur Rahman

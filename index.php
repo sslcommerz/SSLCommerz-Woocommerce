@@ -1,10 +1,10 @@
 <?php
 /*
-  Plugin Name: SSLCommerz Payment Gateway for WooCommerce
-  Plugin URI: https://developer.sslcommerz.com/
-  Description: This plugin allows you to accept payments on your WooCommerce store from customers using Visa Cards, Master cards, American Express etc. via SSLCommerz payment gateway.
+  Plugin Name: SSLCommerz V4(Hosted)-WooCommerce WP V5.2.1
+  Plugin URI: https://developer.sslcommerz.com/doc/v4/
+  Description: This plugin allows you to accept payments on your WooCommerce store from customers using Visa Cards, Master cards, American Express etc. Via SSLCommerz payment gateway with new V4 Hosted API.
   Version: 3.0.1
-  Author: SSLCommerz
+  Author: Prabal Mallick
   Author Email: integration@sslcommerz.com
   Copyright: © 2015-2019 SSLCommerz.
   License: GNU General Public License v3.0
@@ -35,8 +35,8 @@ function woocommerce_sslcommerz_init()
             $this->store_id      = $this->settings['store_id'];
             $this->store_password   = $this->settings['store_password'];
             $this->testmode           = $this->get_option('testmode');
-            $this->testurl            =  "https://sandbox.sslcommerz.com/gwprocess/v3/api.php";
-            $this->liveurl          =  "https://securepay.sslcommerz.com/gwprocess/v3/api.php";
+            $this->testurl            =  "https://sandbox.sslcommerz.com/gwprocess/v4/api.php";
+            $this->liveurl          =  "https://securepay.sslcommerz.com/gwprocess/v4/api.php";
             $this->redirect_page_id = $this->settings['redirect_page_id'];
 
             $this->msg['message'] = "";
@@ -95,7 +95,7 @@ function woocommerce_sslcommerz_init()
                     'description' => __( 'API store password <span style="color: red;">(NOT the merchant panel password)</span>. You should obtain this info from SSLCommerz.')
                 ),
                 'redirect_page_id' => array(
-                    'title' => __('Success Page'),
+                    'title' => __('Select Success Page'),
                     'type' => 'select',
                     'options' => $this->get_pages( 'Select Success Page'),
                     'description' => "User will be redirected here after a successful payment."
@@ -188,41 +188,74 @@ function woocommerce_sslcommerz_init()
         public function generate_sslcommerz_form($order_id)
         {
             global $woocommerce;
+            // global $product;
             $order = new WC_Order($order_id);
-            $order_id = $order_id . '_' . date("ymds");
             $redirect_url = ($this->redirect_page_id == "" || $this->redirect_page_id == 0) ? get_site_url() . "/" : get_permalink($this->redirect_page_id);
             $fail_url = ($this->fail_page_id == "" || $this->fail_page_id == 0) ? get_site_url() . "/" : get_permalink($this->fail_page_id);
             $redirect_url = add_query_arg('wc-api', get_class($this), $redirect_url);
             $fail_url = add_query_arg('wc-api', get_class($this), $fail_url);
             $declineURL = $order->get_cancel_order_url();
 
-            //NEW API OF SSLCOMMERZ
+            $items = $woocommerce->cart->get_cart();
+
+            #shipping method
+            $shipping_method = @array_shift($order->get_shipping_methods());
+            $shipping_method_id = $shipping_method['method_id'];
+
+            if($shipping_method_id != "") {
+                $shipping_enabled = "YES";
+            } else {
+                $shipping_enabled = "NO";
+            }
+
+            $product_title = array();
+
+            foreach($items as $item => $values) 
+            { 
+                $_product =  wc_get_product( $values['data']->get_id()); 
+                $product_title[] = $_product->get_title();
+            } 
+
+            $product_name = implode(",",$product_title);
+            // echo $redirect_url."<br>".$fail_url."<br>".$declineURL;exit;
+
+            //NEW V4 HOSTED API OF SSLCOMMERZ
             $post_data = array(
                 'store_id'      => $this->store_id,
-                'store_id'      => $this->store_id,
-                'store_passwd' => $this->store_password,
-                'total_amount'           => $order->order_total,
-                'tran_id'         => $order_id,
-                'success_url' => $redirect_url,
-                'fail_url' => $fail_url,
-                'cancel_url' => $declineURL,
-                'cus_name'     => $order->billing_first_name . ' ' . $order->billing_last_name,
-                'cus_add1'  => trim($order->billing_address_1, ','),
-                'cus_country'  => wc()->countries->countries[$order->billing_country],
-                'cus_state'    => $order->billing_state,
-                'cus_city'     => $order->billing_city,
-                'cus_postcode'      => $order->billing_postcode,
-                'cus_phone'      => $order->billing_phone,
-                'cus_email'    => $order->billing_email,
-                'ship_name'    => $order->shipping_first_name . ' ' . $order->shipping_last_name,
-                'ship_add1' => $order->shipping_address_1,
-                'ship_country' => $order->shipping_country,
-                'ship_state'   => $order->shipping_state,
-                'delivery_tel'     => '',
-                'ship_city'    => $order->shipping_city,
-                'ship_postcode'     => $order->shipping_postcode,
-                'currency'         => get_woocommerce_currency()
+                'store_passwd'  => $this->store_password,
+                'total_amount'  => $order->order_total,
+                'tran_id'       => $order_id,
+                'success_url'   => $redirect_url,
+                'fail_url'      => $fail_url,
+                'cancel_url'    => $declineURL,
+                'ipn_url'       => __(get_site_url(null, null, null) . '/index.php?sslcommerzipn', 'SSLWireless'),
+                'cus_name'      => $order->billing_first_name . ' ' . $order->billing_last_name,
+                'cus_add1'      => trim($order->billing_address_1, ','),
+                'cus_country'   => wc()->countries->countries[$order->billing_country],
+                'cus_state'     => $order->billing_state,
+                'cus_city'      => $order->billing_city,
+                'cus_postcode'  => $order->billing_postcode,
+                'cus_phone'     => $order->billing_phone,
+                'cus_email'     => $order->billing_email,
+                'ship_name'     => $order->shipping_first_name . ' ' . $order->shipping_last_name,
+                'ship_add1'     => $order->shipping_address_1,
+                'ship_country'  => $order->shipping_country,
+                'ship_state'    => $order->shipping_state,
+                'delivery_tel'  => '',
+                'ship_city'     => $order->shipping_city,
+                'ship_postcode' => $order->shipping_postcode,
+                'currency'      => get_woocommerce_currency(),
+                'product_category'  => 'ecommerce',
+                'shipping_method'   => $shipping_enabled,
+                'num_of_item'       => $woocommerce->cart->cart_contents_count,
+                'product_name'      => $product_name,
+                'product_profile'   => 'general'
             );
+
+            // echo "<pre>";
+            // print_r($post_data);
+            // exit;
+
 
             if ($this->testmode == 'yes') {
                 $liveurl = $this->testurl;
@@ -300,16 +333,14 @@ function woocommerce_sslcommerz_init()
         function check_sslcommerz_response()
         {
             global $woocommerce;
-            $info = explode("_", $_REQUEST['tran_id']);
-            $order_id = $info[0];
-            $order = wc_get_order($info[0]);
+            $tran_id = $_REQUEST['tran_id'];
+            $order = wc_get_order($tran_id);
             $fail_url = ($this->fail_page_id == "" || $this->fail_page_id == 0) ? get_site_url() . "/" : get_permalink($this->fail_page_id);
             $fail_url = add_query_arg('wc-api', get_class($this), $fail_url);
 
-            if (isset($_REQUEST['tran_id'])) {
+            if (isset($tran_id)) {
                 $redirect_url = ($this->redirect_page_id == "" || $this->redirect_page_id == 0) ? get_site_url() . "/" : get_permalink($this->redirect_page_id);
                 $fail_url = ($this->fail_page_id == "" || $this->fail_page_id == 0) ? get_site_url() . "/" : get_permalink($this->fail_page_id);
-                $order_id = $info[0];
                 $this->msg['class'] = 'error';
                 $this->msg['message'] = "Thank you for shopping with us. However, the transaction has been declined.";
 
@@ -324,16 +355,14 @@ function woocommerce_sslcommerz_init()
 
                 if (empty($val_id)) {
                     if ('yes' == $this->testmode) {
-                        $valid_url_own = ("https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=" . $order_id . "&Store_Id=" . $store_id . "&Store_Passwd=" . $store_passwd . "&v=1&format=json");
+                        $valid_url_own = ("https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=" . $tran_id . "&Store_Id=" . $store_id . "&Store_Passwd=" . $store_passwd . "&v=1&format=json");
                     } else {
-                        $valid_url_own = ("https://securepay.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=" . $order_id . "&Store_Id=" . $store_id . "&Store_Passwd=" . $store_passwd . "&v=1&format=json");
+                        $valid_url_own = ("https://securepay.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=" . $tran_id . "&Store_Id=" . $store_id . "&Store_Passwd=" . $store_passwd . "&v=1&format=json");
                     }
 
                     $ownvalid = curl_init();
                     curl_setopt($ownvalid, CURLOPT_URL, $valid_url_own);
                     curl_setopt($ownvalid, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ownvalid, CURLOPT_SSL_VERIFYHOST, false);
-                    curl_setopt($ownvalid, CURLOPT_SSL_VERIFYPEER, false);
 
                     $ownvalid_result = curl_exec($ownvalid);
                     $ownvalid_code = curl_getinfo($ownvalid, CURLINFO_HTTP_CODE);
@@ -356,8 +385,6 @@ function woocommerce_sslcommerz_init()
                 $handle = curl_init();
                 curl_setopt($handle, CURLOPT_URL, $requested_url);
                 curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
-                curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
 
                 $result = curl_exec($handle);
                 $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
@@ -420,9 +447,9 @@ function woocommerce_sslcommerz_init()
                     }
                 }
 
-                if ($order_id != '') {
+                if ($tran_id != '') {
                     try {
-                        $order = wc_get_order($info[0]);
+                        $order = wc_get_order($tran_id);
                         $store_id = $_REQUEST['[tran_id'];
                         $amount = $_REQUEST['amount'];
                         $transauthorised = false;
