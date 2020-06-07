@@ -1,17 +1,19 @@
 <?php
 /*
-	Plugin Name: SSLCommerz Woo Commerce Payment Gateway
-	Plugin URI: http://www.sslommerz.com.bd
-	Description: SSLCommerz Woo commerce Payment Gateway allows you to accept payment on your Woo commerce store via Visa Cards, Master cards, American Express.
-	Version: 1.0.4
-	Author: JM Redwan
-	Author URI: http://www.jmredwan.com
-    Copyright: © 20015-2016 SSLCommerz.
-    License: GNU General Public License v3.0
-    License URI: http://www.gnu.org/licenses/gpl-3.0.html
+  Plugin Name: SSLCommerz Woo Commerce Payment Gateway
+  Plugin URI: http://www.sslommerz.com.bd
+  Description: SSLCommerz Woo commerce Payment Gateway allows you to accept payment on your Woo commerce store via Visa Cards, Master cards, American Express.
+  Version: 2.0.1
+  Author: C.M.Sayedur Rahman
+  Author Email: cmsayed@gmail.com
+  Copyright: © 20015-2018 SSLCommerz.
+  License: GNU General Public License v3.0
+  License URI: http://www.gnu.org/licenses/gpl-3.0.html
 */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 add_action('plugins_loaded', 'woocommerce_sslcommerz_init', 0);
+add_action('plugins_loaded', array(Create_ssl_ipn_page_url::get_instance(), 'setup'));// IPN page setup
+
 function woocommerce_sslcommerz_init(){
   if(!class_exists('WC_Payment_Gateway')) return;
 
@@ -25,12 +27,12 @@ function woocommerce_sslcommerz_init(){
       $this -> init_settings();
 
       $this -> title            = $this -> settings['title'];
-            $this -> description      = $this -> settings['description'];
-            $this -> merchant_id      = $this -> settings['merchant_id'];
-	$this -> store_password   = $this -> settings['store_password'];
-           $this->testmode              = $this->get_option( 'testmode' );
-            $this->testurl           =  "https://sandbox.sslcommerz.com/gwprocess/v3/api.php";
-            $this -> liveurl  =  "https://securepay.sslcommerz.com/gwprocess/v3/api.php";
+      $this -> description      = $this -> settings['description'];
+      $this -> merchant_id      = $this -> settings['merchant_id'];
+      $this -> store_password   = $this -> settings['store_password'];
+      $this->testmode           = $this->get_option( 'testmode' );
+      $this->testurl            =  "https://sandbox.sslcommerz.com/gwprocess/v3/api.php";
+      $this -> liveurl          =  "https://securepay.sslcommerz.com/gwprocess/v3/api.php";
       $this -> redirect_page_id = $this -> settings['redirect_page_id'];
 
       $this -> msg['message'] = "";
@@ -53,29 +55,34 @@ function woocommerce_sslcommerz_init(){
 
        $this -> form_fields = array(
                 'enabled' => array(
-                    'title' => __('Enable/Disable', 'jmredwan'),
+                    'title' => __('Enable/Disable', 'SSLWireless'),
                     'type' => 'checkbox',
-                    'label' => __('Enable SSLCommerz Payment Module.', 'jmredwan'),
+                    'label' => __('Enable SSLCommerz Payment Module.', 'SSLWireless'),
                     'default' => 'no'),
                 'title' => array(
-                    'title' => __('Title:', 'jmredwan'),
+                    'title' => __('Title:', 'SSLWireless'),
                     'type'=> 'text',
-                    'description' => __('This controls the title which the user sees during checkout.', 'jmredwan'),
-                    'default' => __('SSLCommerz', 'jmredwan')),
+                    'description' => __('This controls the title which the user sees during checkout.', 'SSLWireless'),
+                    'default' => __('SSLCommerz', 'SSLWireless')),
                 'description' => array(
-                    'title' => __('Description:', 'jmredwan'),
+                    'title' => __('Description:', 'SSLWireless'),
                     'type' => 'textarea',
-                    'description' => __('This controls the description which the user sees during checkout.', 'jmredwan'),
-                    'default' => __('Pay securely by Credit or Debit card or internet banking through SSLCommerz Secure Servers.', 'jmredwan')),
+                    'description' => __('This controls the description which the user sees during checkout.', 'SSLWireless'),
+                    'default' => __('Pay securely by Credit or Debit card or internet banking through SSLCommerz Secure Servers.', 'SSLWireless')),
                 'merchant_id' => array(
-                    'title' => __('Store ID', 'jmredwan'),
+                    'title' => __('Store ID', 'SSLWireless'),
                     'type' => 'text',
                     'description' => __('ACCESS CREDENTIALS')),
-			
-			 'store_password' => array(
-                    'title' => __('Store Password', 'jmredwan'),
+      
+       'store_password' => array(
+                    'title' => __('Store Password', 'SSLWireless'),
                     'type' => 'text',
                     'description' => __('ACCESS CREDENTIALS!It is required at payment validation.Note: No need to change the store password')),
+'ipnurl' => array(
+                    'title' => __('IPN URL', 'nayemsayed'),
+                    'type' => 'text',
+                    'default' => __(get_site_url( null, null, null ).'/index.php?sslcommerzipn', 'SSLWireless'),
+                    'description' => __('Set this URL as IPN URL in the Marchant Panel')),
 
             'testmode' => array(
                             'title'       => __( 'SSLCommerz sandbox', 'woocommerce' ),
@@ -84,9 +91,9 @@ function woocommerce_sslcommerz_init(){
                             'default'     => 'no',
                             'description' => __( 'SSLCommerz sandbox can be used to test payments.' ),
                     ),
-					
-					
-					
+          
+          
+          
                   'fail_page_id' => array(
                     'title' => __('Return Page Fail'),
                     'type' => 'select',
@@ -111,6 +118,57 @@ function woocommerce_sslcommerz_init(){
         echo '</table>';
 
     }
+
+
+
+
+
+
+
+function plugins_url( $path = '', $plugin = '' ) {
+ 
+    $path = wp_normalize_path( $path );
+    $plugin = wp_normalize_path( $plugin );
+    $mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
+ 
+    if ( !empty($plugin) && 0 === strpos($plugin, $mu_plugin_dir) )
+        $url = WPMU_PLUGIN_URL;
+    else
+        $url = WP_PLUGIN_URL;
+ 
+ 
+    $url = set_url_scheme( $url );
+ 
+    if ( !empty($plugin) && is_string($plugin) ) {
+        $folder = dirname(plugin_basename($plugin));
+        if ( '.' != $folder )
+            $url .= '/' . ltrim($folder, '/');
+    }
+ 
+    if ( $path && is_string( $path ) )
+        $url .= '/' . ltrim($path, '/');
+ 
+    /**
+     * Filters the URL to the plugins directory.
+     *
+     * @since 2.8.0
+     *
+     * @param string $url    The complete URL to the plugins directory including scheme and path.
+     * @param string $path   Path relative to the URL to the plugins directory. Blank string
+     *                       if no path is specified.
+     * @param string $plugin The plugin file path to be relative to. Blank string if no plugin
+     *                       is specified.
+     */
+    return apply_filters( 'plugins_url', $url, $path, $plugin );
+}
+
+
+
+
+
+
+
+
 
     /**
      *  There are no payment fields for sslcommerz, but we want to show the description if set.
@@ -169,8 +227,8 @@ function woocommerce_sslcommerz_init(){
 
 
       
-		
-	    if($this->testmode == 'yes'){
+    
+      if($this->testmode == 'yes'){
                     $liveurl = $this->testurl;
             }else{
                     $liveurl = $this->liveurl;
@@ -192,15 +250,21 @@ $content = curl_exec($handle );
 $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
 
 if($code == 200 && !( curl_errno($handle))) {
-	curl_close( $handle);
-	$sslcommerzResponse = $content;
-	
+  curl_close( $handle);
+  $sslcommerzResponse = $content;
+  
 # PARSE THE JSON RESPONSE
-$sslcz = json_decode($sslcommerzResponse, true );
+  $sslcz = json_decode($sslcommerzResponse, true );
+ if($sslcz['status']=='FAILED')
+  {
+     echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
+      echo "<br/>Failed Reason: ".$sslcz['failedreason'];
+    exit;
+  }
 } else {
-	curl_close( $handle);
-	echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
-	exit;
+  curl_close( $handle);
+  echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
+  exit;
 }
 
 
@@ -208,15 +272,15 @@ $sslcz = json_decode($sslcommerzResponse, true );
 
 
 //echo '<pre>';
-	//print_r($sslcz['GatewayPageURL']);
-//exit;	
+  //print_r($sslcz['GatewayPageURL']);
+//exit; 
         return '<form action="'.$sslcz['GatewayPageURL'].'" method="post" id="sslcommerz_payment_form">
             <input type="submit" class="button-alt" id="submit_sslcommerz_payment_form" value="'.__('Pay via sslcommerz', 'sslcommerz').'" /> <a class="button cancel" href="'.$order->get_cancel_order_url().'">'.__('Cancel order &amp; restore cart', 'sslcommerz').'</a>
             <script type="text/javascript">
 jQuery(function(){
 jQuery("body").block(
         {
-            message: "<img src=\"'.$woocommerce->plugin_url().'/assets/images/ajax-loader.gif\" alt=\"Redirecting…\" style=\"float:left; margin-right: 10px;\" />'.__('Thank you for your order. We are now redirecting you to Payment Gateway to make payment.', 'sslcommerz').'",
+            message: "'.__('Thank you for your order. We are now redirecting you to Payment Gateway to make payment.', 'sslcommerz').'",
                 overlayCSS:
         {
             background: "#fff",
@@ -242,7 +306,7 @@ jQuery("body").block(
      **/
     function process_payment($order_id){
         global $woocommerce;
-    	$order = new WC_Order( $order_id );
+      $order = new WC_Order( $order_id );
         return array('result' => 'success', 'redirect' => $order->get_checkout_payment_url( true ));
     }
 
@@ -259,64 +323,64 @@ jQuery("body").block(
       
 
             if( isset($_REQUEST['tran_id'])){
-				
+        
                 $redirect_url = ($this -> redirect_page_id=="" || $this -> redirect_page_id==0)?get_site_url() . "/":get_permalink($this -> redirect_page_id);
                 $fail_url = ($this -> fail_page_id=="" || $this -> fail_page_id==0)?get_site_url() . "/":get_permalink($this -> fail_page_id);
                 $order_id = $info[0];
                 $this -> msg['class'] = 'error';
                 $this -> msg['message'] = "Thank you for shopping with us. However, the transaction has been declined.";
-				
-				
-				if(isset($_POST['val_id'])){
-					$val_id = urldecode($_POST['val_id']); 
-					}
-				else {
-					 $val_id = ''; 
-					}
+        
+        
+        if(isset($_POST['val_id'])){
+          $val_id = urldecode($_POST['val_id']); 
+          }
+        else {
+           $val_id = ''; 
+          }
                 //$val_id=0;
                  $store_id=urlencode($this -> merchant_id );
                  $store_passwd=urlencode($this ->store_password);
-				 
-				 
-				 
-				 
-				 if(empty($val_id)){
-						 if ('yes' == $this->testmode) { 
-						  $valid_url_own = ("https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=".$order_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json");  
-						 
-						  } else{
-							 $valid_url_own = ("https://securepay.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=".$order_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json"); 
-						  }
-						 
-			$ownvalid = curl_init();
-			curl_setopt($ownvalid, CURLOPT_URL, $valid_url_own);
-			curl_setopt($ownvalid, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ownvalid, CURLOPT_SSL_VERIFYHOST, false);
-			curl_setopt($ownvalid, CURLOPT_SSL_VERIFYPEER, false);
-			
-			$ownvalid_result = curl_exec($ownvalid);
-			
-			$ownvalid_code = curl_getinfo($ownvalid, CURLINFO_HTTP_CODE);
-			
-			if($ownvalid_code == 200 && !( curl_errno($ownvalid)))
-			{
-				$result_own = json_decode($ownvalid_result, true);
-				$lastupdate_no = $result_own['no_of_trans_found']-1;	
-				$own_data = $result_own['element']; 
-				$val_id = $own_data[$lastupdate_no]['val_id'];
-				//echo $own_data[0]['val_id'];
-			}
-						 
-					 
-						 
+         
+         
+         
+         
+         if(empty($val_id)){
+             if ('yes' == $this->testmode) { 
+              $valid_url_own = ("https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=".$order_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json");  
+             
+              } else{
+               $valid_url_own = ("https://securepay.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=".$order_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json"); 
+              }
+             
+      $ownvalid = curl_init();
+      curl_setopt($ownvalid, CURLOPT_URL, $valid_url_own);
+      curl_setopt($ownvalid, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ownvalid, CURLOPT_SSL_VERIFYHOST, false);
+      curl_setopt($ownvalid, CURLOPT_SSL_VERIFYPEER, false);
+      
+      $ownvalid_result = curl_exec($ownvalid);
+      
+      $ownvalid_code = curl_getinfo($ownvalid, CURLINFO_HTTP_CODE);
+      
+      if($ownvalid_code == 200 && !( curl_errno($ownvalid)))
+      {
+        $result_own = json_decode($ownvalid_result, true);
+        $lastupdate_no = $result_own['no_of_trans_found']-1;  
+        $own_data = $result_own['element']; 
+        $val_id = $own_data[$lastupdate_no]['val_id'];
+        //echo $own_data[0]['val_id'];
+      }
+             
+           
+             
 }
-		
+    
              if ('yes' == $this->testmode) { 
                 $requested_url = ("https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php?val_id=".$val_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json");  
                 } else{
                $requested_url = ("https://securepay.sslcommerz.com/validator/api/validationserverAPI.php?val_id=".$val_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json");
                 }  
-				
+        
                 //$amount = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false);
                 $handle = curl_init();
 curl_setopt($handle, CURLOPT_URL, $requested_url);
@@ -327,54 +391,54 @@ curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
 $result = curl_exec($handle);
 
 $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-    // print_r($result);exit;
+
 if($code == 200 && !( curl_errno($handle)))
-{	
+{ 
                     # TO CONVERT AS ARRAY
-	# $result = json_decode($result, true);
-	# $status = $result['status'];	
-	
-	# TO CONVERT AS OBJECT
-	$result = json_decode($result);
-		//print_r($result);
-	# TRANSACTION INFO
-	$status = $result->status;	
-	$tran_date = $result->tran_date;
-	$tran_id = $result->tran_id;
-	$val_id = $result->val_id;
-	$amount = $result->amount;
-	$store_amount = $result->store_amount;
-	$bank_tran_id = $result->bank_tran_id;
-	$card_type = $result->card_type;
-	
-	# ISSUER INFO
-	$card_no = $result->card_no;
-	$card_issuer = $result->card_issuer;
-	$card_brand = $result->card_brand;
-	$card_issuer_country = $result->card_issuer_country;
-	$card_issuer_country_code = $result->card_issuer_country_code;   
-	
-	//Payment Risk Status
-	$risk_level = $result->risk_level;
-	$risk_title = $result->risk_title;
-	$message = '';
-	
-				
-					$message .= 'Payment Status = ' . $status . "\n";
-				    
-					$message .= 'Bank txnid = ' . $bank_tran_id . "\n";
-				   
-					$message .= 'Your Oder id = ' . $tran_id . "\n";
-					
-					$message .= 'Payment Date = ' . $tran_date . "\n";  
-				   
-					$message .= 'Card Number = ' .$card_no . "\n"; 
-				   
-					$message .= 'Card Type = ' .$card_brand .'-'. $card_type . "\n"; 
-				    
-					$message .= 'Transaction Risk Level = ' .$risk_level . "\n"; 
-				   
-					$message .= 'Transaction Risk Description = ' .$risk_title . "\n"; 
+  # $result = json_decode($result, true);
+  # $status = $result['status'];  
+  
+  # TO CONVERT AS OBJECT
+  $result = json_decode($result);
+    //print_r($result);
+  # TRANSACTION INFO
+  $status = $result->status;  
+  $tran_date = $result->tran_date;
+  $tran_id = $result->tran_id;
+  $val_id = $result->val_id;
+  $amount = $result->amount;
+  $store_amount = $result->store_amount;
+  $bank_tran_id = $result->bank_tran_id;
+  $card_type = $result->card_type;
+  
+  # ISSUER INFO
+  $card_no = $result->card_no;
+  $card_issuer = $result->card_issuer;
+  $card_brand = $result->card_brand;
+  $card_issuer_country = $result->card_issuer_country;
+  $card_issuer_country_code = $result->card_issuer_country_code;   
+  
+  //Payment Risk Status
+  $risk_level = $result->risk_level;
+  $risk_title = $result->risk_title;
+  $message = '';
+  
+        
+          $message .= 'Payment Status = ' . $status . "\n";
+            
+          $message .= 'Bank txnid = ' . $bank_tran_id . "\n";
+           
+          $message .= 'Your Oder id = ' . $tran_id . "\n";
+          
+          $message .= 'Payment Date = ' . $tran_date . "\n";  
+           
+          $message .= 'Card Number = ' .$card_no . "\n"; 
+           
+          $message .= 'Card Type = ' .$card_brand .'-'. $card_type . "\n"; 
+            
+          $message .= 'Transaction Risk Level = ' .$risk_level . "\n"; 
+           
+          $message .= 'Transaction Risk Description = ' .$risk_title . "\n"; 
 
                     if($status=='VALID')
                     {
@@ -404,8 +468,11 @@ if($code == 200 && !( curl_errno($handle)))
                                     $transauthorised = true;
                                     $this -> msg['message'] = "Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.";
                                     $this -> msg['class'] = 'success';
-                                    $order -> update_status('Processing');
+                                    if($order->get_status() == 'pending') // If IPN Enable. Then oreder status will be updated by IPN page.So no need to update again.
+				            	              {
+                                        $order -> update_status('Processing');
                                         $order -> payment_complete();
+                                    }
                                         $order -> add_order_note($message);
                                         $order -> add_order_note($this->msg['message']);
                                         $woocommerce -> cart -> empty_cart();
@@ -413,7 +480,7 @@ if($code == 200 && !( curl_errno($handle)))
                                     $redirect_url  = str_replace( 'http:', 'http:', $return_url );
                                    
                                 }
-								else if($pay_status=="risk"){
+                else if($pay_status=="risk"){
                                     $order -> update_status('on-hold');
                                     $order -> add_order_note($message);
                                     $this -> msg['message'] = "Thank you for shopping with us. However, Your account has been charged and your transaction is Pendding. After Geting Verified from SSLCommerz. It will updated soon. Please Co-Operate with SSLCommerz.";
@@ -425,7 +492,7 @@ if($code == 200 && !( curl_errno($handle)))
                                     
                                    $redirect_url  = $fail_url;
                                 }
-								else if($pay_status=="failed"){
+                else if($pay_status=="failed"){
                                     $order -> update_status('failed');
                                     $order -> add_order_note($message);
                                     $this -> msg['message'] = "Thank you for shopping with us. However, the transaction has been Failed.";
@@ -458,6 +525,14 @@ if($code == 200 && !( curl_errno($handle)))
             }
 
     }
+
+
+
+
+
+
+
+
 
     function showMessage($content){
             return '<div class="box '.$this -> msg['class'].'-box">'.$this -> msg['message'].'</div>'.$content;
@@ -493,4 +568,50 @@ if($code == 200 && !( curl_errno($handle)))
     }
 
     add_filter('woocommerce_payment_gateways', 'woocommerce_add_sslcommerz_gateway' );
+}
+
+
+
+class Create_ssl_ipn_page_url{
+
+    protected static $instance = NULL;
+
+    public function __construct() {}
+
+    public static function get_instance() {
+        NULL === self::$instance and self::$instance = new self;
+        return self::$instance;
+    }    
+
+    public function setup() {
+
+        add_action('init', array($this, 'rewrite_rules'));
+        add_filter('query_vars', array($this, 'query_vars'), 10, 1);
+        add_action('parse_request', array($this, 'parse_request'), 10, 1);
+
+        register_activation_hook(__FILE__, array($this, 'flush_rules' ));
+
+    }
+
+    public function rewrite_rules(){
+        add_rewrite_rule('sslcommerzipn/?$', 'index.php?sslcommerzipn', 'top');
+    }
+
+    public function flush_rules(){
+        $this->rewrite_rules();
+        flush_rewrite_rules();
+    }
+
+    public function query_vars($vars){
+        $vars[] = 'sslcommerzipn';
+        return $vars;
+    }
+
+    public function parse_request($wp){
+        if ( array_key_exists( 'sslcommerzipn', $wp->query_vars ) ){
+            include plugin_dir_path(__FILE__) . 'sslcommerz_ipn.php';
+            exit();
+        }
+    }
+
 }
