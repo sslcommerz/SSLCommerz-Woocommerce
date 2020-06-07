@@ -17,6 +17,8 @@
 3. Move the whole directory to ```/wp-content/plugins/```
 4. Activate the plugin through the 'Plugins' menu in admin panel.
 
+**[NOTE]** This plugin will automatically set the IPN url, there is no need to set IPN in merchant panel when using this.
+
 ### Configuration
 
 1. Open Admin Panel.
@@ -36,12 +38,9 @@
 
 ### What is SSLCommerz?
 > SSLCOMMERZ is the first payment gateway in Bangladesh opening doors for merchants to receive payments on the internet via their online stores.
-
 ### What is a Payment Gateway?
 > Payment Gateway is a service that allows merchant to accept secure credit card transactions online. It essentially connects a merchant website to a transaction processor like bank to take payment from a customer for an order.
 
 
 ## Contributors
-> Prabal Mallick,
-> Md. Rakibul Islam,
-> C.M. Sayedur Rahman
+> Prabal Mallick
