@@ -6,9 +6,9 @@
 
 ### Prerequisites
 
-1. Wordpress 5.1.*
-2. WooCommerce 3.6.*
-3. cURL php extension.
+1. Wordpress 5.1 or later
+2. WooCommerce 3.6 or later
+3. cURL php extension enabled.
 
 ### Installation
 
@@ -44,3 +44,4 @@
 
 ## Contributors
 > Prabal Mallick
+> Md. Rakibul Islam
