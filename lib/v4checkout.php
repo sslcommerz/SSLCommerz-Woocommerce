@@ -1,5 +1,5 @@
 <?php 
-	$order_id = $_REQUEST['order'];
+	$order_id = sanitize_text_field($_REQUEST['order']);
 	
 	$WC_sslcommerz = new WC_sslcommerz;
 	$sslc_data     = $WC_sslcommerz->generate_sslcommerz_form($order_id);
@@ -51,52 +51,57 @@
 	$direct_api_url                 = $sslc_data['api_url'];
 	$api_type                 		= $sslc_data['type'];
 
-	$handle = curl_init();
-	curl_setopt($handle, CURLOPT_URL, $direct_api_url );
-	curl_setopt($handle, CURLOPT_TIMEOUT, 30);
-	curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 30);
-	curl_setopt($handle, CURLOPT_POST, 1 );
-	curl_setopt($handle, CURLOPT_POSTFIELDS, $post_data);
-	curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, FALSE); # KEEP IT FALSE IF YOU RUN FROM LOCAL PC
+	$response = wp_remote_post( $direct_api_url, array(
+	    'method'      => 'POST',
+		'timeout'     => 30,
+		'redirection' => 10,
+		'httpversion' => '1.1',
+		'blocking'    => true,
+		'headers'     => array(),
+		'body'        => $post_data,
+		'cookies'     => array(),
+	    )
+	);
 
-
-	$content = curl_exec($handle );
-
-	$code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-
-	if($code == 200 && !( curl_errno($handle))) {
-	    curl_close( $handle);
-	    $sslcommerzResponse = $content;
-	} else {
-	    curl_close( $handle);
-	    echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
-	    exit;
-	}
-
-	# PARSE THE JSON RESPONSE
-	$sslcz = json_decode($sslcommerzResponse, true );
-
-	if(isset($sslcz['GatewayPageURL']) && $sslcz['GatewayPageURL']!="") {
-		// this is important to show the popup, return or echo to sent json response back
-		if($api_type == "no")
-		{
-			echo json_encode(['status' => 'SUCCESS', 'data' => $sslcz['GatewayPageURL'], 'logo' => $sslcz['storeLogo'] ]);
-			
-			exit;
-		}
-		else if($api_type == "yes")
-		{
-			echo json_encode(['status' => 'success', 'data' => $sslcz['GatewayPageURL'], 'logo' => $sslcz['storeLogo'] ]);
-			exit;
-		}
+	if($response['response']['code'] == 200)
+	{
+		$sslcz = json_decode($response['body'], true);
 		
-	   //return json_encode(['status' => 'SUCCESS', 'data' => $sslcz['GatewayPageURL'], 'logo' => $sslcz['storeLogo'] ]);
-	} else {
-	   	$error = $sslcz['failedreason'];
-	   	echo json_encode(['status' => 'FAILED', 'data' => null, 'message' => $error]);
+		if ($sslcz['status'] == 'FAILED') {
+            echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
+            echo "<br/>Failed Reason: " . $sslcz['failedreason'];
+            exit;
+        }
+        else
+        {
+        	if(isset($sslcz['GatewayPageURL']) && $sslcz['GatewayPageURL']!="") {
+				// this is important to show the popup, return or echo to sent json response back
+				if($api_type == "no")
+				{
+					echo json_encode(['status' => 'SUCCESS', 'data' => $sslcz['GatewayPageURL'], 'logo' => $sslcz['storeLogo'] ]);
+					exit;
+				}
+				else if($api_type == "yes")
+				{
+					echo json_encode(['status' => 'success', 'data' => $sslcz['GatewayPageURL'], 'logo' => $sslcz['storeLogo'] ]);
+					exit;
+				}
+			} 
+			else {
+			   	$error = $sslcz['failedreason'];
+			   	echo json_encode(['status' => 'FAILED', 'data' => null, 'message' => $error]);
+			}
+        }
 	}
-                            	
+	else
+	{
+		if ( is_wp_error( $response ) ) {
+			echo $response->get_error_message();
+		}
+		echo "Error Code: ".$response['response']['code'];
+		echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
+		exit;
+	}                       	
 
 ?>
 
