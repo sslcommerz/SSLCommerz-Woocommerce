@@ -4,6 +4,8 @@
 
 ## Getting Started
 
+### Also available at [Wordpress Plugin Store](https://wordpress.org/plugins/wc-sslcommerz-easycheckout/ "SSLCommerz Payment Gateway")
+
 ### Prerequisites
 
 1. Wordpress 5.1.*
