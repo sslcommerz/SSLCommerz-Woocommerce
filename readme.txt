@@ -3,11 +3,11 @@ Contributors: prabalsslw
 Tags: sslcommerz, Payment, gateway, easycheckout, hosted, bangladesh, official
 Author URI: prabalsslw.github.io
 Plugin URI: https://sslcommerz.com/
-Version: 4.0.0
+Version: 4.0.1
 Requires PHP: 7.0
 Requires at least: 3.6
 Tested up to: 5.4.2
-Stable tag: 4.0.0
+Stable tag: 4.0.1
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -34,8 +34,10 @@ SSLCOMMERZ is the first payment gateway in Bangladesh opening doors for merchant
 3. Click on `Upload Plugin` button.
 4. Go to `Choose File` and upload the Zip file of plugin.
 5. Active the plugin.
-6. Use your Sandbox Store ID/Password for test environment or Use your Live Store ID/Password for Live environment.
-7. If you don't have sandbox store credentials then create it from [Here](https://developer.sslcommerz.com/registration/ "SSLCommerz Sandbox Registration")
+6. Or search the plugin at wordpress plugin store with `SSLCommerz Payment Gateway`.
+7. Just click `Install` > `Active` and plugin is ready to use.
+8. Use your Sandbox Store ID/Password for test environment or Use your Live Store ID/Password for Live environment.
+9. If you don't have sandbox store credentials then create it from [Here](https://developer.sslcommerz.com/registration/ "SSLCommerz Sandbox Registration")
 
 == Gateway Configuration ==
 
