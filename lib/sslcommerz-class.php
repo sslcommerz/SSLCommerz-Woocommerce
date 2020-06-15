@@ -391,9 +391,9 @@
                 $store_passwd = urlencode($this->store_password);
 
                 if ('yes' == $this->testmode) {
-                    $requested_url = ("https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php?val_id=" . $val_id . "&Store_Id=" . $store_id . "&Store_Passwd=" . $store_passwd . "&v=1&format=json");
+                    $requested_url = ("https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php?val_id=" . $val_id . "&store_id=" . $store_id . "&store_passwd=" . $store_passwd . "&v=1&format=json");
                 } else {
-                    $requested_url = ("https://securepay.sslcommerz.com/validator/api/validationserverAPI.php?val_id=" . $val_id . "&Store_Id=" . $store_id . "&Store_Passwd=" . $store_passwd . "&v=1&format=json");
+                    $requested_url = ("https://securepay.sslcommerz.com/validator/api/validationserverAPI.php?val_id=" . $val_id . "&store_id=" . $store_id . "&store_passwd=" . $store_passwd . "&v=1&format=json");
                 }
 
 				$result = wp_remote_post(

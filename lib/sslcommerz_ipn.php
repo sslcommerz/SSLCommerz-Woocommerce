@@ -29,7 +29,7 @@
 
         $order = new WC_Order($tran_id);
 
-		$requested_url = ($url."?val_id=".$val_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json");
+		$requested_url = ($url."?val_id=".$val_id."&store_id=".$store_id."&store_passwd=".$store_passwd."&v=1&format=json");
 		$result = wp_remote_post(
 			$requested_url,
 			array(
