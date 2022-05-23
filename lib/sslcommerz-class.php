@@ -189,7 +189,7 @@
                     token="<?php echo $order;?>"
                     postdata=""
                     order="<?php echo $order;?>"
-                    endpoint="<?php echo get_site_url(); ?>/easyCheckout.php?v4checkout">Pay Via SSLCommerz
+                    endpoint="<?php echo get_site_url(); ?>/easyCheckout.php?v4checkout">Proceed With Payment
                 </button>
                 &nbsp;&nbsp; <a href="../">Cancel</a>
                 <script type="text/javascript">
