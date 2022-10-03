@@ -1,31 +1,22 @@
 === SSLCommerz Payment Gateway ===
-Contributors: prabalsslw
+Contributors: prabalsslw, rkbi
 Tags: sslcommerz, Payment, gateway, easycheckout, hosted, bangladesh, official
-Author URI: prabalsslw.github.io
-Plugin URI: https://sslcommerz.com/
-Version: 4.0.1
-Requires PHP: 7.0
+Author URI: https://www.sslcommerz.com
+Plugin URI: https://github.com/sslcommerz/SSLCommerz-Woocommerce
+Version: 6.0.2
+Requires PHP: 7.4
 Requires at least: 3.6
-Tested up to: 5.4.2
-Stable tag: 4.0.1
+Tested up to: 6.0.2
+Stable tag: 6.0.2
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 == Prerequisites ==
-- WordPress 5.x.x
-- WooCommerce 4.2.x
-- cURL php extension.
-- Sandbox & Live Store Credentials.
-- [Create Sandbox](https://developer.sslcommerz.com/registration/ "SSLCommerz Sandbox Registration")
+1. Wordpress 5.1 or later
+2. WooCommerce 3.6 or later
+3. cURL php extension enabled.
+4. [Sandbox Credentials](https://developer.sslcommerz.com/registration/ "SSLCommerz Sandbox Registration") or [Live Credentials](https://signup.sslcommerz.com/register/ "Merchant Registration")
 
-== Description ==
-
-This is the official Plugin of SSLCommerz.
-
-SSLCOMMERZ is the first payment gateway in Bangladesh opening doors for merchants to receive payments on the internet via their online stores. Their customers will be able to buy products online using their credit cards as well as bank accounts. If you are a merchant, you have come to the right place! WooCommerce plugin for SSLCommerz payment gateway with Dynamic IPN Support.This plugin allows you to accept payments on your WooCommerce store from customers using Visa Cards, Master cards, American Express etc. Via SSLCommerz payment gateway with new V4 EasyCheckout API.
-
-    * Easy to install!
-    * IPN Webhook
 
 == Installation ==
 
@@ -34,10 +25,6 @@ SSLCOMMERZ is the first payment gateway in Bangladesh opening doors for merchant
 3. Click on `Upload Plugin` button.
 4. Go to `Choose File` and upload the Zip file of plugin.
 5. Active the plugin.
-6. Or search the plugin at wordpress plugin store with `SSLCommerz Payment Gateway`.
-7. Just click `Install` > `Active` and plugin is ready to use.
-8. Use your Sandbox Store ID/Password for test environment or Use your Live Store ID/Password for Live environment.
-9. If you don't have sandbox store credentials then create it from [Here](https://developer.sslcommerz.com/registration/ "SSLCommerz Sandbox Registration")
 
 == Gateway Configuration ==
 
@@ -50,17 +37,14 @@ SSLCOMMERZ is the first payment gateway in Bangladesh opening doors for merchant
 
 == Frequently Asked Questions == 
 
-### What is WooCommerce?
-> WooCommerce is an open-source e-commerce plugin for WordPress. 
+### I am getting error which says my store is de-active.
+> check Testmode, Store ID and Store Password in the settings. If issue still persists, communicate with merchnat's Key Account Manager (**KAM**).
+ 
+### How can I enable IPN?
+> This plugin handled IPN with ZERO configuration. No action needed from your end. 
 
-### What is SSLCommerz?
-> SSLCOMMERZ is the first payment gateway in Bangladesh opening doors for merchants to receive payments on the internet via their online stores. Their customers will be able to buy products online using their credit cards as well as bank accounts.
-
-### What is a Payment Gateway?
-> Payment Gateway is a service that allows merchant to accept secure credit card transactions online. It essentially connects a merchant website to a transaction processor like bank to take payment from a customer for an order.
-
-### What is IPN?
-> This is an important and interesting part of integration. If somehow your consumer pays your payable amount to BANK Side and SSLCommerz accept it as SUCCESS but your website/Connectivity/Customer Network got downtime and unable to update the payment at your side you can use `IPN (Instant Payment Notification)`. It will send a notification to your set up URL in SSLCommerz Merchant Dashboard to notify you and your database even if your user unable to return back to your website.
+### I want to create order in woocommerce only if transaction is successful. Otherwise order will not be placed.
+> This is NOT possible. Order gets created before going to payment page with "Pending" status. After transaction order status will be updated within a short time. 
 
 ### I want to enable EMI option, how it works?
 > To enable EMI option first you have to make an agreement with us. To do that please communicate with the Business person, you have communicate at the time of Store registration. Besides this in live, you will have EMI configuration option after login to your Merchant report panel go to `My Stores>EMI Settings`.
@@ -68,22 +52,10 @@ SSLCOMMERZ is the first payment gateway in Bangladesh opening doors for merchant
 ### I want my customer will bear the gateway charges. How can I do that?
 > Yes, We have solution for this, you can configure this from your merchant panel or mail to `operation@sslcommerz.com` .
 
-### What is the Minimum amount of transaction?
-> The minimum amount of transaction should be more than `10TK` .
 
 == License ==
 - GPL3
 
-== Changelog ==
-= 4.0 =
-> Release Date - 11 June 2020
-
-* The plugin will transparently support sandbox & securepay.
-* Hosted & Popup both supported.
-* Dynamic IPN configured.
-
-== Upgrade Notice ==
-> Release Date - 11 June 2020
      
 == Screenshots ==
 1. Install the plugin.
