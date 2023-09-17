@@ -3,11 +3,11 @@ Contributors: prabalsslw, rkbi
 Tags: sslcommerz, Payment, gateway, easycheckout, hosted, bangladesh, official
 Author URI: https://www.sslcommerz.com
 Plugin URI: https://github.com/sslcommerz/SSLCommerz-Woocommerce
-Version: 6.0.2
+Version: 6.0.3
 Requires PHP: 7.4
 Requires at least: 3.6
-Tested up to: 6.0.2
-Stable tag: 6.0.2
+Tested up to: 6.3.1
+Stable tag: 6.0.3
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
