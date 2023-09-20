@@ -298,6 +298,11 @@
 				    )
 				);
 
+                if ( is_wp_error( $response ) ) {
+                    echo $response->get_error_message();
+                    exit;
+                }
+
 				if($response['response']['code'] == 200)
 				{
 					$sslcz = json_decode($response['body'], true);
@@ -309,9 +314,6 @@
 				}
 				else
 				{
-					if ( is_wp_error( $response ) ) {
-						echo $response->get_error_message();
-					}
 					echo "Error Code: ".$response['response']['code'];
 					echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
 					exit;
@@ -554,3 +556,4 @@
             return $page_list;
         }
     }
+
