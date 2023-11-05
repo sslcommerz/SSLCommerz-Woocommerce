@@ -3,9 +3,9 @@
 *  Plugin Name: SSLCommerz Payment Gateway
 *  Plugin URI: https://sslcommerz.com/
 *  Description: This plugin allows you to accept payments on your WooCommerce store from customers using Visa Cards, Master cards, American Express etc. Via SSLCommerz payment gateway with new V4 API & both Hosted & Popup.
-*  Version: 6.0.4
-*  Stable tag: 6.0.4
-*  WC tested up to: 6.3.1
+*  Version: 6.1.0
+*  Stable tag: 6.1.0
+*  WC tested up to: 6.4
 *  Author: SSLCommerz
 *  Author URI: https://github.com/sslcommerz/
 *  Author Email: integration@sslcommerz.com
@@ -27,7 +27,7 @@
 	define( 'SSLCOM_PATH', plugin_dir_path( __FILE__ ) );
 	define( 'SSLCOM_URL', plugin_dir_url( __FILE__ ) );
 
-	define ( 'SSLCOMMERZ_PLUGIN_VERSION', '6.0.2');
+	define ( 'SSLCOMMERZ_PLUGIN_VERSION', '6.1.0');
 	
 	global $plugin_slug;
 	$plugin_slug = 'sslcommerz';
@@ -38,7 +38,11 @@
 	add_action('plugins_loaded', 'woocommerce_sslcommerz_init', 0);
 	add_action('plugins_loaded', array(V4checkout_page::get_instance(), 'setup')); // V4checkout_page setup
 	add_action('plugins_loaded', array(SSLCommerz_Ipn::get_instance(), 'setup')); // IPN page setup
-
+	add_action( 'before_woocommerce_init', function() {
+		if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+		}
+	} );
 
 	/**
 	 * Hook plugin activation
