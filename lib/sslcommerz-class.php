@@ -3,23 +3,34 @@
 
     class WC_sslcommerz extends WC_Payment_Gateway
     {
+        public $store_id         = '';
+        public $store_password   = '';
+        public $testmode   = '';
+        public $testurl   = '';
+        public $liveurl   = '';
+        public $redirect_page_id   = '';
+        public $fail_page_id   = '';
+        public $msg   = [];
+            
         public function __construct()
         {
             $this->id = 'sslcommerz';
-            $this->medthod_title = 'sslcommerz';
-            $this->has_fields = false;
+            $this->icon               =  plugins_url( 'images/icon-256x256.png', dirname(__FILE__));
+            $this->has_fields         = false;
+            $this->method_title       = 'SSLCOMMERZ';
+            $this->method_description = 'Accept Debit cards, Credit cards, BKash, Nagad, Rocket and 33+ payment methods in Bangladesh.';
 
             $this->init_form_fields();
             $this->init_settings();
 
             $this->title            = $this->settings['title'];
             $this->description      = $this->settings['description'];
-            $this->store_id         = $this->settings['store_id'];
+            $this->enabled          = $this->get_option('enabled');
             $this->store_id         = $this->settings['store_id'];
             $this->store_password   = $this->settings['store_password'];
             $this->testmode         = $this->get_option('testmode');
-            $this->testurl          =  "https://sandbox.sslcommerz.com/gwprocess/v4/api.php";
-            $this->liveurl          =  "https://securepay.sslcommerz.com/gwprocess/v4/api.php";
+            $this->testurl          = "https://sandbox.sslcommerz.com/gwprocess/v4/api.php";
+            $this->liveurl          = "https://securepay.sslcommerz.com/gwprocess/v4/api.php";
             $this->redirect_page_id = $this->settings['redirect_page_id'];
             $this->fail_page_id		= $this->settings['fail_page_id'];
 
@@ -30,8 +41,9 @@
  
             if (version_compare(WOOCOMMERCE_VERSION, '2.0.0', '>=')) {
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
-            } 
-            else {
+            } elseif (version_compare(WOOCOMMERCE_VERSION, '9.8.0', '<=')) {
+                add_action('woocommerce_api_' . strtolower(get_class($this)), array($this, 'check_response'));
+            } else {
                 add_action('woocommerce_update_options_payment_gateways', array(&$this, 'process_admin_options'));
             }
             add_action('woocommerce_receipt_sslcommerz', array($this, 'receipt_page'));
@@ -41,72 +53,88 @@
         {
             $this->form_fields = array(
                 'enabled' => array(
-                    'title'       => __('Enabled', 'sslcommerz'),
+                    'title'       => 'Enabled',
                     'type'        => 'checkbox',
-                    'label'       => __('Enable SSLCommerz Payment Module.', 'sslcommerz'),
-                    'default'     => 'yes'
+                    'label'       => 'Enable SSLCommerz Payment Module.',
+                    'default'     => 'yes',
                 ),
                 'testmode' => array(
-                    'title'       => __('Testmode', 'woocommerce'),
+                    'title'       => 'Sandbox / Testmode',
                     'type'        => 'checkbox',
-                    'label'       => __('Enable Testmode', 'woocommerce'),
+                    'label'       => 'Enable Testmode',
                     'default'     => 'no',
-                    'description' => __('Use Sandbox (testmode) API for development purposes. Don\'t forget to uncheck before going live.'),
+                    'description' => 'Use Sandbox / Testmode for testing with dummy payment. <span style="color: red;">Don\'t forget to uncheck before going live</span>',
                 ),
                 'hosted' => array(
-                    'title'       => __('Hosted EasyCheckout', 'woocommerce'),
+                    'title'       => 'Hosted Checkout',
                     'type'        => 'checkbox',
-                    'label'       => __('Enable Hosted Checkout', 'woocommerce'),
+                    'label'       => 'Enable Hosted Checkout',
                     'default'     => 'yes',
-                    'description' => __('Hosted checkout will redirect customer to SSLCommerz Server.'),
+                    'description' => 'Hosted checkout will redirect customer to SSLCommerz Server.',
                 ),
                 'title' => array(
-                    'title'       => __('Title to show', 'sslcommerz'),
+                    'title'       => 'Title to show',
                     'type'        => 'text',
-                    'description' => __('This will be shown as the payment method name on the checkout page.', 'sslcommerz'),
-                    'default'     => __('Pay Online(Credit/Debit Card/MobileBanking/NetBanking/bKash)', 'sslcommerz')
+                    'description' => 'This will be shown as the payment method name on the checkout page.',
+                    'default'     => 'Pay Online(Credit/Debit Card/MobileBanking/NetBanking/bKash)',
+                    'sanitize_callback' => 'sanitize_text_field',
                 ),
                 'description' => array(
-                    'title'       => __('Description to show', 'sslcommerz'),
+                    'title'       => 'Description to show',
                     'type'        => 'textarea',
-                    'description' => __( 'This will be shown as the payment method description on the checkout page.', 'sslcommerz'),
-                    'default'     => __('Pay securely by Credit/Debit card, Internet banking or Mobile banking through SSLCommerz.', 'sslcommerz')
+                    'description' =>  'This will be shown as the payment method description on the checkout page.',
+                    'default'     => 'Pay securely by Credit/Debit card, Internet banking or Mobile banking through SSLCommerz.',
+                    'sanitize_callback' => 'sanitize_text_field',
                 ),
                 'store_id' => array(
-                    'title'       => __('Store ID', 'sslcommerz'),
+                    'title'       => 'Store ID',
                     'type'        => 'text',
-                    'description' => __( 'API store id <span style="color: red;">(NOT the merchant panel id)</span>. You should obtain this info from SSLCommerz.')
+                    'description' =>  'API store id <span style="color: red;">(NOT the merchant panel id)</span>, sent to merchant\'s registered email.',
+                    'sanitize_callback' => 'sanitize_text_field',
                 ),
                 'store_password' => array(
-                    'title'       => __('Store Password', 'sslcommerz'),
+                    'title'       => 'Store Password',
                     'type'        => 'text',
-                    'description' => __( 'API store password <span style="color: red;">(NOT the merchant panel password)</span>. You should obtain this info from SSLCommerz.')
+                    'description' =>  'API store password <span style="color: red;">(NOT the merchant panel password)</span>, sent to merchant\'s registered email.',
+                    'sanitize_callback' => 'sanitize_text_field',
                 ),
                 'redirect_page_id' => array(
-                    'title'       => __('Select Success Page'),
+                    'title'       => 'Select Success Page',
                     'type'        => 'select',
                     'options'     => $this->get_pages( 'Select Success Page'),
-                    'description' => "User will be redirected here after a successful payment. We recommend <span style='color: green;'><b>Checkout Page</b></span>."
+                    'description' => "User will be redirected here after a successful payment. We recommend <span style='color: green;'><b>Checkout Page</b></span>.",
                 ),
                 'fail_page_id' => array(
-                    'title'       => __('Fail / Cancel Page'),
+                    'title'       => 'Fail / Cancel Page',
                     'type'        => 'select',
                     'options'     => $this->get_pages( 'Select Fail / Cancel Page'),
-                    'description' => "User will be redirected here if transaction fails or get canceled. We recommend <span style='color: green;'><b>Cart Page</b></span>."
+                    'description' => "User will be redirected here if transaction fails or get canceled. We recommend <span style='color: green;'><b>Cart Page</b></span>.",
                 )
             );
         }
 
         public function admin_options()
         {
-            echo '<h2>' . __('SSLCommerz Payment Gateway', 'sslcommerz') . '</h2>';
-            echo '<p>' . __('Configure parameters to start accepting payments.') . '</p><hr>';
-            echo "<h4 style='color:green;'>" . __("Register for sandbox merchant panel & store credentials <a href='https://developer.sslcommerz.com/registration/' target='blank'>Click Here</a> .") . "</h4><hr>";
+            echo '<h2>SSLCommerz Payment Gateway</h2>';
+            echo '<p>Configure parameters to start accepting payments.</p><hr>';
+            echo '<h4 style="color:green;">Register for sandbox merchant panel & store credentials <a href="https://developer.sslcommerz.com/registration/" target="blank">Click Here</a> .</h4><hr>';
             
             echo '<table class="form-table">';
-            // Generate the HTML For the settings form.
             $this->generate_settings_html();
             echo '</table>';
+            ?>
+
+            <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                // Ensure settings are properly bound in new admin interface
+                $('#woocommerce_<?php echo $this->id; ?>_enabled').on('change', function() {
+                    var enabled = $(this).is(':checked');
+                    $('#woocommerce_<?php echo $this->id; ?>_title, #woocommerce_<?php echo $this->id; ?>_description').closest('tr').toggle(enabled);
+                }).trigger('change');
+            });
+            </script>
+            
+            <?php
         }
 
         function plugins_url($path = '', $plugin = '')
@@ -163,7 +191,7 @@
          **/
         function receipt_page($order)
         {
-            echo '<p>' . __('Thank you for your order, please click the button below to pay with sslcommerz.', 'sslcommerz') . '</p>';
+            echo '<p>Thank you for your order, please click the button below to pay with sslcommerz.</p>';
             if($this->settings['hosted'] == 'yes')
             {
             	echo $this->generate_sslcommerz_form($order);
@@ -252,7 +280,7 @@
                 'success_url'   => $redirect_url,
                 'fail_url'      => $fail_url,
                 'cancel_url'    => $declineURL,
-                'ipn_url'       => __(get_site_url(null, null, null) . '/easyCheckout.php?sslcommerzipn', 'sslcommerz'),
+                'ipn_url'       => get_site_url(null, null, null) . '/easyCheckout.php?sslcommerzipn',
                 'cus_name'      => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
                 'cus_add1'      => trim($order->get_billing_address_1(), ','),
                 'cus_country'   => wc()->countries->countries[$order->get_billing_country()],
@@ -320,11 +348,11 @@
 				}
 
 	            return '<form action="' . $sslcz['GatewayPageURL'] . '" method="post" id="sslcommerz_payment_form">
-	                <input type="submit" class="button-alt" id="submit_sslcommerz_payment_form" value="' . __('Pay via sslcommerz', 'sslcommerz') . '" /> <a class="button cancel" href="' . $order->get_cancel_order_url() . '">' . __('Cancel order &amp; restore cart', 'sslcommerz') . '</a>
+	                <input type="submit" class="button-alt" id="submit_sslcommerz_payment_form" value="Pay via sslcommerz" /> <a class="button cancel" href="' . $order->get_cancel_order_url() . '">Cancel order &amp; restore cart</a>
 	                <script type="text/javascript">
 	                    jQuery(function(){
 	                        jQuery("body").block({
-	                            message: "' . __('Thank you for your order. We are now redirecting you to Payment Gateway to make payment.', 'sslcommerz') . '",
+	                            message: "Thank you for your order. We are now redirecting you to Payment Gateway to make payment.",
 	                            overlayCSS: {
 	                                background: "#fff",
 	                                    opacity: 0.6
@@ -502,7 +530,7 @@
                             $order->add_order_note($message);
                             $this->msg['message'] = "Thank you for shopping with us. However, Your account has been charged and your transaction is Pendding. After Geting Verified from SSLCommerz. It will updated soon. Please Co-Operate with SSLCommerz.";
                             $this->msg['class'] = 'Failed';
-                            wc_add_notice(__('Unfortunately your card was declined and the order could not be processed. Please try again with a different card or payment method.', 'woocommerce'), 'error');
+                            wc_add_notice('Unfortunately your card was declined and the order could not be processed. Please try again with a different card or payment method.', 'error');
                             $redirect_url  = $fail_url;
                         } 
                         else if ($pay_status == "failed") 
@@ -511,7 +539,7 @@
                             $order->add_order_note($message);
                             $this->msg['message'] = "Thank you for shopping with us. However, the transaction has been Failed.";
                             $this->msg['class'] = 'Failed';
-                            wc_add_notice(__('Unfortunately your card was declined and the order could not be processed. Please try again with a different card or payment method.', 'woocommerce'), 'error');
+                            wc_add_notice('Unfortunately your card was declined and the order could not be processed. Please try again with a different card or payment method.', 'error');
                             $redirect_url  = $fail_url;
                         } 
                         else {

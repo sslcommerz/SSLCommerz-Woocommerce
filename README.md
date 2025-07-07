@@ -8,7 +8,7 @@
 
 ### Prerequisites
 
-1. Wordpress 5.1 or later
+1. Wordpress 5.8 or later
 2. WooCommerce 3.6 or later
 3. cURL php extension enabled.
 4. [Sandbox Credentials](https://developer.sslcommerz.com/registration/ "SSLCommerz Sandbox Registration") or [Live Credentials](https://signup.sslcommerz.com/register/ "Merchant Registration")

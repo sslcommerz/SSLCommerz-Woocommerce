@@ -3,10 +3,10 @@
 *  Plugin Name: SSLCommerz Payment Gateway
 *  Plugin URI: https://sslcommerz.com/
 *  Description: This plugin allows you to accept payments on your WooCommerce store from customers using Visa Cards, Master cards, American Express etc. Via SSLCommerz payment gateway with new V4 API & both Hosted & Popup.
-*  Version: 6.1.0
-*  Stable tag: 6.1.0
-*  WC tested up to: 6.4
-*  Author: SSLCommerz
+*  Version: 6.2.0
+*  Stable tag: 6.2.0
+*  Tested up to: 6.8.1
+*  Author: SSLCOMMERZ
 *  Author URI: https://github.com/sslcommerz/
 *  Author Email: integration@sslcommerz.com
 *  License: GNU General Public License v3.0
@@ -27,7 +27,7 @@
 	define( 'SSLCOM_PATH', plugin_dir_path( __FILE__ ) );
 	define( 'SSLCOM_URL', plugin_dir_url( __FILE__ ) );
 
-	define ( 'SSLCOMMERZ_PLUGIN_VERSION', '6.1.0');
+	define ( 'SSLCOMMERZ_PLUGIN_VERSION', '6.2.0');
 	
 	global $plugin_slug;
 	$plugin_slug = 'sslcommerz';
@@ -38,11 +38,18 @@
 	add_action('plugins_loaded', 'woocommerce_sslcommerz_init', 0);
 	add_action('plugins_loaded', array(V4checkout_page::get_instance(), 'setup')); // V4checkout_page setup
 	add_action('plugins_loaded', array(SSLCommerz_Ipn::get_instance(), 'setup')); // IPN page setup
-	add_action( 'before_woocommerce_init', function() {
-		if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
-			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+	function sslcommerz_check_woocommerce_version() {
+		if (defined('WC_VERSION')) {
+			if (version_compare(WC_VERSION, '8.0', '>=')) {
+				add_action('before_woocommerce_init', function() {
+					if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+						\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+					}
+				});
+			}
 		}
-	} );
+	}
+	add_action('plugins_loaded', 'sslcommerz_check_woocommerce_version', 5);
 
 	/**
 	 * Hook plugin activation
@@ -67,13 +74,25 @@
 	{
 		require_once( SSLCOM_PATH . 'lib/sslcommerz-class.php' );
 
-		function woocommerce_add_sslcommerz_gateway($methods)
-	    {
-	        $methods[] = 'WC_sslcommerz';
-	        return $methods;
-	    }
+		function woocommerce_add_sslcommerz_gateway($methods) {
+			if (class_exists('WC_SSLCOMMERZ')) {
+				$methods[] = 'WC_SSLCOMMERZ';
+			}
+			return $methods;
+		}
 
-	    add_filter('woocommerce_payment_gateways', 'woocommerce_add_sslcommerz_gateway');
+		add_filter('woocommerce_payment_gateways', 'woocommerce_add_sslcommerz_gateway');
+
+		add_action('plugins_loaded', function() {
+			if (class_exists('WooCommerce')) {
+				// Force reload payment gateways for new admin interface
+				add_action('admin_init', function() {
+					if (is_admin() && current_user_can('manage_woocommerce')) {
+						WC()->payment_gateways();
+					}
+				});
+			}
+		});
 
 	    function sslcom_settings_link($links)
 		{
@@ -97,7 +116,7 @@
 	    function sslcom_gateway_icon($icon, $id)
 	    {
 	        if ($id === 'sslcommerz') {
-	            return '<img src="' . plugins_url( 'images/sslcz-verified.png', __FILE__) . '" > ';
+	            return '<img style="max-width: 25%;" src="' . plugins_url( 'images/sslcz-verified.png', __FILE__) . '" > ';
 	        } else {
 	            return $icon;
 	        }
