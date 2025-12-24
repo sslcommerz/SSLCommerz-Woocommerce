@@ -3,9 +3,9 @@
 *  Plugin Name: SSLCommerz Payment Gateway
 *  Plugin URI: https://sslcommerz.com/
 *  Description: This plugin allows you to accept payments on your WooCommerce store from customers using Visa Cards, Master cards, American Express etc. Via SSLCommerz payment gateway with new V4 API & both Hosted & Popup.
-*  Version: 6.2.0
-*  Stable tag: 6.2.0
-*  Tested up to: 6.8.1
+*  Version: 6.3.0
+*  Stable tag: 6.3.0
+*  Tested up to: 6.9
 *  Author: SSLCOMMERZ
 *  Author URI: https://github.com/sslcommerz/
 *  Author Email: integration@sslcommerz.com
@@ -27,7 +27,7 @@
 	define( 'SSLCOM_PATH', plugin_dir_path( __FILE__ ) );
 	define( 'SSLCOM_URL', plugin_dir_url( __FILE__ ) );
 
-	define ( 'SSLCOMMERZ_PLUGIN_VERSION', '6.2.0');
+	define ( 'SSLCOMMERZ_PLUGIN_VERSION', '6.3.0');
 	
 	global $plugin_slug;
 	$plugin_slug = 'sslcommerz';
@@ -43,13 +43,34 @@
 			if (version_compare(WC_VERSION, '8.0', '>=')) {
 				add_action('before_woocommerce_init', function() {
 					if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+						// HPOS (Custom Order Tables) compatibility
 						\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+						// Cart and Checkout Blocks compatibility
+						\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('cart_checkout_blocks', __FILE__, true);
 					}
 				});
 			}
 		}
 	}
 	add_action('plugins_loaded', 'sslcommerz_check_woocommerce_version', 5);
+
+	/**
+	 * Register SSLCommerz payment method for WooCommerce Blocks
+	 */
+	add_action('woocommerce_blocks_loaded', function() {
+		if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+			return;
+		}
+
+		require_once SSLCOM_PATH . 'lib/class-sslcommerz-blocks.php';
+
+		add_action(
+			'woocommerce_blocks_payment_method_type_registration',
+			function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+				$payment_method_registry->register( new WC_SSLCommerz_Blocks() );
+			}
+		);
+	});
 
 	/**
 	 * Hook plugin activation
