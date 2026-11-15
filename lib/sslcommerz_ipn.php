@@ -56,12 +56,17 @@
 		if($result['response']['code'] == 200)
 		{	
 			$result = json_decode($result['body']);
-	
+
+			if(!isset($result->tran_id) || (string)$result->tran_id !== (string)$tran_id)
+			{
+				die("Invalid IPN Data!");
+			}
+			
 			if($order->get_total() == trim($result->currency_amount))
 			{ 
 				if($result->status=='VALIDATED' || $result->status=='VALID') 
 				{ 
-					if($order->get_status() != 'processing')
+					if($order->needs_payment())
 					{
 						if($_POST['amount'] != "")
 						{		
@@ -77,6 +82,7 @@
 								$result_msg .=  "IPN: Order Status Updated<br>";
 								$result_msg .=  "IPN: Cart Empty<br>";
 								$result_msg .=  "IPN: Hit Time - ".date("l d-m-yy h:i:s");
+								echo "Updated to Processing";
 							}
 							else
 							{
@@ -149,4 +155,3 @@
 	}
 
 	$order->add_order_note($result_msg);
-	// echo $result_msg;

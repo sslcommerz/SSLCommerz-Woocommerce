@@ -280,7 +280,7 @@
                 'success_url'   => $redirect_url,
                 'fail_url'      => $fail_url,
                 'cancel_url'    => $declineURL,
-                'ipn_url'       => get_site_url(null, null, null) . '/easyCheckout.php?sslcommerzipn',
+                'ipn_url'       => get_site_url(null, null, null) . '/index.php?sslcommerzipn',
                 'cus_name'      => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
                 'cus_add1'      => trim($order->get_billing_address_1(), ','),
                 'cus_country'   => wc()->countries->countries[$order->get_billing_country()],
@@ -417,6 +417,7 @@
                     $val_id = '';
                 }
 
+                $val_id = rawurlencode($val_id);
                 $store_id = urlencode($this->store_id);
                 $store_passwd = urlencode($this->store_password);
 
@@ -443,6 +444,11 @@
 				if($result['response']['code'] == 200)
 				{
 	                $result = json_decode($result['body']);
+                    
+                    if (!isset($result->tran_id) || (string)$result->tran_id !== (string)$tran_id) {
+                        wp_redirect($fail_url);
+                        exit;
+                    }
 
                     # TRANSACTION INFO
                     $status = $result->status;
@@ -506,6 +512,14 @@
                         $store_id = sanitize_text_field($_REQUEST['tran_id']);
                         $amount = sanitize_text_field($_REQUEST['amount']);
                         $transauthorised = false;
+
+                        if (!$order || $order->get_total() != trim($result->amount)) {
+                            if ($order) {
+                                $order->add_order_note('SSLCommerz: amount mismatch, order status not updated. Please check manually.');
+                            }
+                            wp_redirect($fail_url);
+                            exit;
+                        }
 
                         if ($pay_status == "success") {
 
