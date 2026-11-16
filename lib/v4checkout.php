@@ -1,4 +1,7 @@
 <?php 
+
+	if (!defined('ABSPATH')) exit; // Exit if accessed directly
+
 	$order_id = sanitize_text_field($_REQUEST['order']);
 	
 	$WC_sslcommerz = new WC_sslcommerz;
@@ -69,7 +72,7 @@
 		
 		if ($sslcz['status'] == 'FAILED') {
             echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
-            echo "<br/>Failed Reason: " . $sslcz['failedreason'];
+            echo "<br/>Failed Reason: " . esc_html($sslcz['failedreason']);
             exit;
         }
         else
@@ -96,9 +99,9 @@
 	else
 	{
 		if ( is_wp_error( $response ) ) {
-			echo $response->get_error_message();
+			echo esc_html( $response->get_error_message() );
 		}
-		echo "Error Code: ".$response['response']['code'];
+		echo "Error Code: " . esc_html($response['response']['code']);
 		echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
 		exit;
 	}                       	

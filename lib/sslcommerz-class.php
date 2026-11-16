@@ -127,9 +127,9 @@
             <script type="text/javascript">
             jQuery(document).ready(function($) {
                 // Ensure settings are properly bound in new admin interface
-                $('#woocommerce_<?php echo $this->id; ?>_enabled').on('change', function() {
+                $('#woocommerce_<?php echo esc_attr($this->id); ?>_enabled').on('change', function() {
                     var enabled = $(this).is(':checked');
-                    $('#woocommerce_<?php echo $this->id; ?>_title, #woocommerce_<?php echo $this->id; ?>_description').closest('tr').toggle(enabled);
+                    $('#woocommerce_<?php echo esc_attr($this->id); ?>_title, #woocommerce_<?php echo esc_attr($this->id); ?>_description').closest('tr').toggle(enabled);
                 }).trigger('change');
             });
             </script>
@@ -183,7 +183,7 @@
          **/
         function payment_fields()
         {
-            if ($this->description) echo wpautop(wptexturize($this->description));
+            if ($this->description) echo wp_kses_post(wpautop(wptexturize($this->description)));
         }
 
         /**
@@ -194,11 +194,11 @@
             echo '<p>Thank you for your order, please click the button below to pay with sslcommerz.</p>';
             if($this->settings['hosted'] == 'yes')
             {
-            	echo $this->generate_sslcommerz_form($order);
+            	echo $this->generate_sslcommerz_form($order); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             }
             else
             {
-            	echo $this->button($order);
+            	$this->button($order);
             }
         }
 
@@ -214,14 +214,14 @@
             $post_data = json_encode($this->generate_sslcommerz_form($order));
             ?>
                 <button class="button alt" id="sslczPayBtn"
-                    token="<?php echo $order;?>"
+                    token="<?php echo esc_attr($order);?>"
                     postdata=""
-                    order="<?php echo $order;?>"
-                    endpoint="<?php echo get_site_url(); ?>/easyCheckout.php?v4checkout">Proceed With Payment
+                    order="<?php echo esc_attr($order);?>"
+                    endpoint="<?php echo esc_url(get_site_url()); ?>/index.php?v4checkout">Proceed With Payment
                 </button>
                 &nbsp;&nbsp; <a href="../">Cancel</a>
                 <script type="text/javascript">
-                    var url = <?php echo "'$jsurl'"; ?>;
+                    var url = <?php echo wp_json_encode( $jsurl ); ?>;
                     (function (window, document) {
                         var loader = function () {
                             var script = document.createElement("script"), tag = document.getElementsByTagName("script")[0];
@@ -327,7 +327,7 @@
 				);
 
                 if ( is_wp_error( $response ) ) {
-                    echo $response->get_error_message();
+                    echo esc_html($response->get_error_message());
                     exit;
                 }
 
@@ -336,13 +336,13 @@
 					$sslcz = json_decode($response['body'], true);
 					if ($sslcz['status'] == 'FAILED') {
 	                    echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
-	                    echo "<br/>Failed Reason: " . $sslcz['failedreason'];
+	                    echo "<br/>Failed Reason: " . esc_html($sslcz['failedreason']);
 	                    exit;
 	                }
 				}
 				else
 				{
-					echo "Error Code: ".$response['response']['code'];
+					echo "Error Code: " . esc_html($response['response']['code']);
 					echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
 					exit;
 				}

@@ -81,7 +81,7 @@
 								$result_msg .=  "IPN: Val ID-".$val_id."<br>";
 								$result_msg .=  "IPN: Order Status Updated<br>";
 								$result_msg .=  "IPN: Cart Empty<br>";
-								$result_msg .=  "IPN: Hit Time - ".date("l d-m-yy h:i:s");
+								$result_msg .=  "IPN: Hit Time - ".gmdate("l d-m-yy h:i:s");
 								echo "Updated to Processing";
 							}
 							else
@@ -96,7 +96,7 @@
 								$result_msg .=  "IPN: Val ID-".$val_id."<br>";
 								$result_msg .=  "IPN: Order Status Updated<br>";
 								$result_msg .=  "IPN: Cart Empty<br>";
-								$result_msg .=  "IPN: Hit Time - ".date("l d-m-yy h:i:s");
+								$result_msg .=  "IPN: Hit Time - ".gmdate("l d-m-yy h:i:s");
 							}
 						}
 						else
@@ -138,7 +138,7 @@
 					$result_msg .=  "IPN: Error - ".$_POST['error']."<br>";
 					$result_msg .=  "IPN: Tran ID-".$tran_id."<br>";
 					$result_msg .=  "IPN: Order status changed to $new_status<br>";
-					$result_msg .=  "IPN: Hit Time - ".date("l d-m-yy h:i:s");
+					$result_msg .=  "IPN: Hit Time - ".gmdate("l d-m-yy h:i:s");
 			}
 			else
 			{
